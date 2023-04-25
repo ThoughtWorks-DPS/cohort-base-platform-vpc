@@ -7,14 +7,14 @@
 		<a href="https://aws.amazon.com"><img src="https://img.shields.io/badge/-deployed-blank.svg?style=social&logo=amazon"></a>
 		<br />
 		<h3>lab-iam-profiles</h3>
-		</a> <a href="https://app.circleci.com/pipelines/github/ThoughtWorks-DPS/lab-platform-vpc"><img src="https://circleci.com/gh/ThoughtWorks-DPS/lab-platform-vpc.svg?style=shield"></a>
+		</a> <a href="https://app.circleci.com/pipelines/github/ThoughtWorks-DPS/cohort-base-platform-vpc"><img src="https://circleci.com/gh/ThoughtWorks-DPS/cohort-base-platform-vpc.svg?style=shield"></a>
 		<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/github/license/ThoughtWorks-DPS/circleci-remote-docker"></a>
 	</p>
 </div>
 
-Strive to create a simple transit routed network. In this way, individual internal AWS account holders can self manage their own account network topologies and connect to other enterprise addresses by connecting to the appropriate transit gateway (which can be configured to auto-accept connections from corporate AWS accounts).  
+Strive to create a simple transit routed network. In this way, individual internal AWS account holders can self manage their own account network topologies and connect to other enterprise addresses by connecting to the appropriate transit gateway (which can be configured to auto-accept connections from corporate AWS accounts).
 
-The platform starter kit repo deals only with the platform instance network routes.  
+The platform starter kit repo deals only with the platform instance network routes.
 
 ```
 | vpc      | region          | az              | az             | az             |
@@ -67,4 +67,4 @@ The platform starter kit repo deals only with the platform instance network rout
 
 #### vpc-flow-logs
 
-Uncomment section in main.tf to generate vpc-flow-logs.  
+Uncomment section in main.tf to generate vpc-flow-logs.

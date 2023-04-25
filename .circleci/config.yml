@@ -20,18 +20,18 @@ parameters:
   executor-image:
     description: use this image for local job definitions
     type: string
-    default: twdps/circleci-infra-aws:alpine-1.8.0
+    default: twdps/circleci-infra-aws:stable
 
 # ==== triggers
 
-# git push: deploy sandbox
+# git push: deploy nonprod
 on-push-main: &on-push-main
   branches:
     only: /main/
   tags:
     ignore: /.*/
 
-# git tag: release 
+# git tag: release
 on-tag-main: &on-tag-main
   branches:
     ignore: /.*/
@@ -40,7 +40,7 @@ on-tag-main: &on-tag-main
 
 commands:
 
-  set-environment: 
+  set-environment:
     description: generate environment credentials and configuration from templates
     parameters:
       cluster:
@@ -86,106 +86,101 @@ jobs:
 workflows:
   version: 2
 
-  deploy sandbox-us-east-2 vpc:
+  deploy nonprod-us-east-2 vpc:
     jobs:
       - terraform/plan:
-          name: sandbox-us-east-2 change plan
+          name: nonprod-us-east-2 change plan
           context: << pipeline.parameters.context >>
           shell: op run --env-file=op.nonprod.env -- /bin/bash -eo pipefail
-          workspace: sandbox-us-east-2
+          workspace: nonprod-us-east-2
           terraform-version: << pipeline.parameters.terraform-version >>
           before-terraform:
             - set-environment:
-                cluster: sandbox-us-east-2
+                cluster: nonprod-us-east-2
                 source-env: op.nonprod.env
           filters: *on-push-main
 
-      - approve sandbox-us-east-2 changes:
+      - approve nonprod-us-east-2 changes:
           type: approval
           requires:
-            - sandbox-us-east-2 change plan
+            - nonprod-us-east-2 change plan
           filters: *on-push-main
 
       - terraform/apply:
-          name: apply sandbox-us-east-2 changes
+          name: apply nonprod-us-east-2 changes
           context: << pipeline.parameters.context >>
           shell: op run --env-file=op.nonprod.env -- /bin/bash -eo pipefail
-          workspace: sandbox-us-east-2
+          workspace: nonprod-us-east-2
           terraform-version: << pipeline.parameters.terraform-version >>
           before-terraform:
             - set-environment:
-                cluster: sandbox-us-east-2
+                cluster: nonprod-us-east-2
                 source-env: op.nonprod.env
-          after-terraform:
-            - do/circle-deploy
-            - do/slack-webhook:
-                message: lab-platform-vpc sandbox-us-east-2 deployment
-                webhook-url: $LAB_EVENTS_CHANNEL_WEBHOOK
           requires:
-            - approve sandbox-us-east-2 changes
+            - approve nonprod-us-east-2 changes
           filters: *on-push-main
 
       - validate-vpc:
-          name: test sandbox-us-east-2 vpc configuration
+          name: test nonprod-us-east-2 vpc configuration
           context: << pipeline.parameters.context >>
-          cluster: sandbox-us-east-2
+          cluster: nonprod-us-east-2
           source-env: op.nonprod.env
           requires:
-            - apply sandbox-us-east-2 changes
+            - apply nonprod-us-east-2 changes
           filters: *on-push-main
 
-  release prod-us-east-1 vpc:
-    jobs:
-      - terraform/plan:
-          name: prod-us-east-1 change plan
-          context: << pipeline.parameters.context >>
-          shell: op run --env-file=op.prod.env -- /bin/bash -eo pipefail
-          workspace: prod-us-east-1
-          terraform-version: << pipeline.parameters.terraform-version >>
-          before-terraform:
-            - set-environment:
-                cluster: prod-us-east-1
-                source-env: op.prod.env
-          filters: *on-tag-main
+#  release prod-us-east-1 vpc:
+#    jobs:
+#      - terraform/plan:
+#          name: prod-us-east-1 change plan
+#          context: << pipeline.parameters.context >>
+#          shell: op run --env-file=op.prod.env -- /bin/bash -eo pipefail
+#          workspace: prod-us-east-1
+#          terraform-version: << pipeline.parameters.terraform-version >>
+#          before-terraform:
+#            - set-environment:
+#                cluster: prod-us-east-1
+#                source-env: op.prod.env
+#          filters: *on-tag-main
 
-      - approve prod-us-east-1 changes:
-          type: approval
-          requires:
-            - prod-us-east-1 change plan
-          filters: *on-tag-main
+#      - approve prod-us-east-1 changes:
+#          type: approval
+#          requires:
+#            - prod-us-east-1 change plan
+#          filters: *on-tag-main
 
-      - terraform/apply:
-          name: apply prod-us-east-1 changes
-          context: << pipeline.parameters.context >>
-          shell: op run --env-file=op.prod.env -- /bin/bash -eo pipefail
-          workspace: prod-us-east-1
-          terraform-version: << pipeline.parameters.terraform-version >>
-          before-terraform:
-            - set-environment:
-                cluster: prod-us-east-1
-                source-env: op.prod.env
-          after-terraform:
-            - do/circle-deploy
-            - do/slack-webhook:
-                message: lab-platform-vpc prod-us-east-1 release
-                webhook-url: $LAB_EVENTS_CHANNEL_WEBHOOK
-          requires:
-            - approve prod-us-east-1 changes
-          filters: *on-tag-main
+#      - terraform/apply:
+#          name: apply prod-us-east-1 changes
+#          context: << pipeline.parameters.context >>
+#          shell: op run --env-file=op.prod.env -- /bin/bash -eo pipefail
+#          workspace: prod-us-east-1
+#          terraform-version: << pipeline.parameters.terraform-version >>
+#          before-terraform:
+#            - set-environment:
+#                cluster: prod-us-east-1
+#                source-env: op.prod.env
+#          after-terraform:
+#            - do/circle-deploy
+#            - do/slack-webhook:
+#                message: cohort-base-platform-vpc prod-us-east-1 release
+#                webhook-url: $LAB_EVENTS_CHANNEL_WEBHOOK
+#          requires:
+#            - approve prod-us-east-1 changes
+#          filters: *on-tag-main
 
-      - validate-vpc:
-          name: test prod-us-east-1 vpc configuration
-          context: << pipeline.parameters.context >>
-          source-env: op.prod.env
-          cluster: prod-us-east-1
-          requires:
-            - apply prod-us-east-1 changes
-          filters: *on-tag-main
+#      - validate-vpc:
+#          name: test prod-us-east-1 vpc configuration
+#          context: << pipeline.parameters.context >>
+#          source-env: op.prod.env
+#          cluster: prod-us-east-1
+#          requires:
+#            - apply prod-us-east-1 changes
+#          filters: *on-tag-main
 
   # generate-release-notes:
   #   jobs:
   #     - executor-tools/release:
-  #         name: release-lab-platform-vpc
+  #         name: release-cohort-base-platform-vpc
   #         context: << pipeline.parameters.context >>
   #         shell: op run --env-file=op.prod.env -- /bin/bash -eo pipefail
   #         filters: *on-tag-main
@@ -200,12 +195,12 @@ workflows:
                 - main
     jobs:
       - validate-vpc:
-          name: nightly sandbox-us-east-2 vpc validation
+          name: nightly nonprod-us-east-2 vpc validation
           context: << pipeline.parameters.context >>
           source-env: op.nonprod.env
-          cluster: sandbox-us-east-2
-      - validate-vpc:
-          name: nightly prod-us-east-1 vpc validation
-          context: << pipeline.parameters.context >>
-          source-env: op.prod.env
-          cluster: prod-us-east-1
+          cluster: nonprod-us-east-2
+#      - validate-vpc:
+#          name: nightly prod-us-east-1 vpc validation
+#          context: << pipeline.parameters.context >>
+#          source-env: op.prod.env
+#          cluster: prod-us-east-1

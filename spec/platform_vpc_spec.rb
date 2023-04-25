@@ -11,7 +11,7 @@ describe vpc(tfvars["cluster_name"] + '-vpc') do
   it { should have_vpc_attribute('enableDnsSupport') }
   it { should have_tag('cluster').value(tfvars['cluster_name']) }
   it { should have_tag('kubernetes.io/cluster/'+tfvars["cluster_name"]).value('shared') }
-  it { should have_tag('pipeline').value('lab-platform-vpc') }
+  it { should have_tag('pipeline').value('cohort-base-platform-vpc') }
 end
 
 tfvars['vpc_azs'].each_with_index do |az, index|
